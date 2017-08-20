@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import logo from './logo.svg'
+import PropTypes from 'prop-types'
 import './App.css'
 import axios from 'axios'
 
@@ -14,6 +14,7 @@ class VideoCanvas extends Component {
             videoUrl: undefined,
             videoWidth: 0,
             videoHeight: 0,
+            videoFrameRate: 0,
             errorMessage: ""
         }
 
@@ -31,7 +32,8 @@ class VideoCanvas extends Component {
                 this.setState({
                     videoUrl: obj.mp4Url,
                     videoWidth: obj.width,
-                    videoHeight: obj.height
+                    videoHeight: obj.height,
+                    videoFrameRate: obj.frameRate,
                 })
             });
         }
@@ -45,10 +47,10 @@ class VideoCanvas extends Component {
         }
         if (video.currentTime < this.state.endTime) {
             ctx.drawImage(video, 0, 0, this.state.videoWidth, this.state.videoHeight)
-            setTimeout(this.looper, 1000 / 30) // 30fps
+            setTimeout(this.looper, 1000 / this.state.videoFrameRate)
         } else {
             video.currentTime = this.state.startTime
-            setTimeout(this.looper, 1000 / 30)
+            setTimeout(this.looper, 1000 / this.state.videoFrameRate)
         }
     }
 
@@ -114,18 +116,18 @@ class VideoCanvas extends Component {
     render() {
         return (
             <div>
-                <video onPlay={this.looper} onLoadedMetadata={this.loadedMetaDataHandler}
-                    src={this.state.videoUrl}
+                <video onPlay={this.looper} onLoadedMetadata={this.loadedMetaDataHandler} src={this.state.videoUrl}
                     controls="false" style={{display:'none'}} ref={(player) => {this.player = player}} autoPlay loop />
+
                 <canvas width={this.state.videoWidth} height={this.state.videoHeight} ref={(canvas) => {this.canvas = canvas}} />
                 <div>
                     <label>
                         Start time:
-                        <input type="text" onChange={this.startTimeChangeHandler} ref={(input)=>{this.startTimeInput = input}}/>
+                        <input type="text" onChange={this.startTimeChangeHandler} ref={(input)=>{this.startTimeInput=input}} />
                     </label>
                     <label>
                         End time:
-                        <input type="text" onChange={this.endTimeChangeHandler} ref={(input)=>{this.endTimeInput = input}}/>
+                        <input type="text" onChange={this.endTimeChangeHandler} ref={(input)=>{this.endTimeInput=input}} />
                     </label>
                 </div>
                 <span style={{color:'red'}}>{this.state.errorMessage}</span>
@@ -134,10 +136,14 @@ class VideoCanvas extends Component {
     }
 }
 
+VideoCanvas.propTypes = {
+    urlToLoad: PropTypes.string.isRequired
+}
+
 class App extends Component {
     render() {
         return (
-            <VideoCanvas urlToLoad="https://api.gfycat.com/v1test/gfycats/TautWhoppingCougar"/>
+            <VideoCanvas urlToLoad="https://api.gfycat.com/v1test/gfycats/TautWhoppingCougar" />
         );
     }
 }
