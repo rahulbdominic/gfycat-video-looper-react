@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { Redirect } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 
@@ -15,7 +16,8 @@ class VideoCanvas extends Component {
             videoUrl: undefined,
             aspectRatio: 0,
             videoFrameRate: 30,
-            errorMessage: ""
+            errorMessage: "",
+            redirect: false
         }
 
         this.looper = this.looper.bind(this)
@@ -30,13 +32,21 @@ class VideoCanvas extends Component {
         window.addEventListener('resize', this.updateWindowDimensions);
         axios.get(this.props.urlToLoad)
             .then(res => {
-                const obj = res.data.gfyItem;
+                if (res.status / 100 == 2) {
+                    const obj = res.data.gfyItem;
+                    this.setState({
+                        videoUrl: obj.mp4Url,
+                        canvasWidth: window.innerWidth,
+                        canvasHeight: window.innerWidth * obj.height / obj.width,
+                        aspectRatio: obj.height / obj.width,
+                        videoFrameRate: obj.frameRate
+                    })
+                }
+            })
+            .catch(thrown => {
+                alert("Invalid GIF name. Redirecting. " + thrown.message)
                 this.setState({
-                    videoUrl: obj.mp4Url,
-                    canvasWidth: window.innerWidth,
-                    canvasHeight: window.innerWidth * obj.height / obj.width,
-                    aspectRatio: obj.height / obj.width,
-                    videoFrameRate: obj.frameRate
+                    redirect: true
                 })
             });
     }
@@ -130,25 +140,34 @@ class VideoCanvas extends Component {
     }
 
     render() {
-        return (
-            <div>
-                <video onPlay={this.looper} onLoadedMetadata={this.loadedMetaDataHandler} src={this.state.videoUrl}
-                    controls="false" style={{display:'none'}} ref={(player) => {this.player = player}} autoPlay loop />
+        if(this.state.redirect) {
+            return (
+              <Redirect to={{
+                pathname: '/'
+              }} />
+            )
+        }
+         else {
+             return (
+                <div>
+                    <video onPlay={this.looper} onLoadedMetadata={this.loadedMetaDataHandler} src={this.state.videoUrl}
+                        controls="false" style={{display:'none'}} ref={(player) => {this.player = player}} autoPlay loop />
 
-                <canvas width={this.state.canvasWidth} height={this.state.canvasHeight} ref={(canvas) => {this.canvas = canvas}} />
-                <div className="Center">
-                    <label style={{display:"block"}}>
-                        Start time:
-                        <input style={{display:"inline-block"}} type="text" onChange={this.startTimeChangeHandler} ref={(input)=>{this.startTimeInput=input}} />
-                    </label>
-                    <label style={{display:"block"}}>
-                        End time:
-                        <input style={{display:"inline-block"}} type="text" onChange={this.endTimeChangeHandler} ref={(input)=>{this.endTimeInput=input}} />
-                    </label>
+                    <canvas width={this.state.canvasWidth} height={this.state.canvasHeight} ref={(canvas) => {this.canvas = canvas}} />
+                    <div className="Center">
+                        <label style={{display:"block"}}>
+                            Start time:
+                            <input style={{display:"inline-block"}} type="text" onChange={this.startTimeChangeHandler} ref={(input)=>{this.startTimeInput=input}} />
+                        </label>
+                        <label style={{display:"block"}}>
+                            End time:
+                            <input style={{display:"inline-block"}} type="text" onChange={this.endTimeChangeHandler} ref={(input)=>{this.endTimeInput=input}} />
+                        </label>
+                    </div>
+                    <span style={{color:'red', whiteSpace:"pre-line"}}>{this.state.errorMessage}</span>
                 </div>
-                <span style={{color:'red', "white-space":"pre-line"}}>{this.state.errorMessage}</span>
-            </div>
-        )
+            )
+        }
     }
 }
 

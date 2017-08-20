@@ -47,7 +47,7 @@ class UrlEntry extends Component {
                     </label>
                     <span style={{display:"block"}}>Eg: TautWhoppingCougar, BravePlainAmmonite</span>
                     <button onClick={this.submitHandler}>Submit</button>
-                    <button onClick={this.tryButtonHandler} style={{"margin-left": "5px"}}>Try a sample</button>
+                    <button onClick={this.tryButtonHandler} style={{marginLeft: "5px"}}>Try a sample</button>
                 </div>
             )
         }
