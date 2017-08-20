@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Redirect } from 'react-router-dom'
 import PropTypes from 'prop-types'
+import enableInlineVideo from 'iphone-inline-video'
 import axios from 'axios'
 
 class VideoCanvas extends Component {
@@ -32,7 +33,7 @@ class VideoCanvas extends Component {
         window.addEventListener('resize', this.updateWindowDimensions);
         axios.get(this.props.urlToLoad)
             .then(res => {
-                if (res.status / 100 == 2) {
+                if (res.status / 100 === 2) {
                     const obj = res.data.gfyItem;
                     this.setState({
                         videoUrl: obj.mp4Url,
@@ -41,6 +42,7 @@ class VideoCanvas extends Component {
                         aspectRatio: obj.height / obj.width,
                         videoFrameRate: obj.frameRate
                     })
+                    enableInlineVideo(this.player)
                 }
             })
             .catch(thrown => {
@@ -151,7 +153,7 @@ class VideoCanvas extends Component {
              return (
                 <div>
                     <video onPlay={this.looper} onLoadedMetadata={this.loadedMetaDataHandler} src={this.state.videoUrl}
-                        controls="false" style={{display:'none'}} ref={(player) => {this.player = player}} autoPlay loop  webkit-playsinline/>
+                        controls="false" style={{display:'none'}} ref={(player) => {this.player = player}} autoPlay loop playsInline/>
 
                     <canvas width={this.state.canvasWidth} height={this.state.canvasHeight} ref={(canvas) => {this.canvas = canvas}} />
                     <div className="Center">
