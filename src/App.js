@@ -9,7 +9,8 @@ class VideoCanvas extends Component {
         this.state={
             startTime: 0,
             endTime: 0,
-            duration: 0
+            duration: 0,
+            errorMessage: ""
         }
 
         this.looper = this.looper.bind(this)
@@ -31,7 +32,7 @@ class VideoCanvas extends Component {
             setTimeout(this.looper, 1000 / 30) // 30fps
         } else {
             video.currentTime = this.state.startTime
-            setTimeout(this.looper, 1000 / 30) 
+            setTimeout(this.looper, 1000 / 30)
         }
     }
 
@@ -48,17 +49,37 @@ class VideoCanvas extends Component {
 
     startTimeChangeHandler(event) {
         var _startTime = Number(event.target.value)
-        if (_startTime !== "NaN" && _startTime < this.state.duration) {
-            this.setState({startTime:_startTime})
+        if (_startTime !== "NaN" && _startTime < this.state.duration && _startTime > 0 && _startTime < this.state.endTime) {
+            this.setState({
+                startTime:_startTime,
+                errorMessage: ""
+            })
             this.resetPlayer()
+        } else {
+            this.setState({
+                errorMessage:"Invalid input for one or more fields. \n" +
+                    "1)Start time and end time must be numbers" +
+                    "2)Start time must be >= 0 and end time must be <=" + this.state.duration +
+                    "3)Start time must be <= end time"
+            })
         }
     }
 
     endTimeChangeHandler(event) {
         var _endTime = Number(event.target.value)
-        if (_endTime !== "NaN" && _endTime < this.state.duration) {
-            this.setState({endTime:_endTime})
+        if (_endTime !== "NaN" && _endTime < this.state.duration && _endTime > 0 && _endTime > this.state.startTime) {
+            this.setState({
+                endTime:_endTime,
+                errorMessage: ""
+            })
             this.resetPlayer()
+        } else {
+            this.setState({
+                errorMessage:"Invalid input for one or more fields. \n" +
+                    "1)Start time and end time must be numbers" +
+                    "2)Start time must be >= 0 and end time must be <=" + this.state.duration +
+                    "3)Start time must be <= end time"
+            })
         }
     }
 
@@ -79,19 +100,19 @@ class VideoCanvas extends Component {
             <div>
                 <video onPlay={this.looper} onLoadedMetadata={this.loadedMetaDataHandler}
                     src="https://giant.gfycat.com/TautWhoppingCougar.mp4"
-                    controls="false" style={{display:'none'}} ref={(player) => {this.player = player}} autoplay loop />
+                    controls="false" style={{display:'none'}} ref={(player) => {this.player = player}} autoPlay loop />
                 <canvas width="300" height="300" ref={(canvas) => {this.canvas = canvas}} />
                 <div>
                     <label>
                         Start time:
-                        <input type="text" ref={(input)=>{this.startTimeInput = input}}/>
+                        <input type="text" onChange={this.startTimeChangeHandler} ref={(input)=>{this.startTimeInput = input}}/>
                     </label>
                     <label>
                         End time:
-                        <input type="text" ref={(input)=>{this.endTimeInput = input}}/>
+                        <input type="text" onChange={this.endTimeChangeHandler} ref={(input)=>{this.endTimeInput = input}}/>
                     </label>
-                    <button onClick={this.resetPlayer}>Reset</button>
                 </div>
+                <span style={{color:'red'}}>{this.state.errorMessage}</span>
             </div>
         )
     }
