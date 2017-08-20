@@ -3,6 +3,10 @@ import PropTypes from 'prop-types'
 import './App.css'
 import axios from 'axios'
 
+const videoCanvasStyle = {
+    width: "100%"
+}
+
 class VideoCanvas extends Component {
     constructor() {
         super()
@@ -11,10 +15,11 @@ class VideoCanvas extends Component {
             startTime: 0,
             endTime: 0,
             duration: 0,
+            canvasWidth: 0,
+            canvasHeight: 0,
             videoUrl: undefined,
-            videoWidth: 0,
-            videoHeight: 0,
-            videoFrameRate: 0,
+            aspectRatio: 0,
+            videoFrameRate: 30,
             errorMessage: ""
         }
 
@@ -23,20 +28,27 @@ class VideoCanvas extends Component {
         this.startTimeChangeHandler = this.startTimeChangeHandler.bind(this)
         this.endTimeChangeHandler = this.endTimeChangeHandler.bind(this)
         this.resetPlayer = this.resetPlayer.bind(this)
+        this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
     }
 
     componentDidMount() {
+        window.addEventListener('resize', this.updateWindowDimensions);
         axios.get(this.props.urlToLoad)
             .then(res => {
                 const obj = res.data.gfyItem;
                 this.setState({
                     videoUrl: obj.mp4Url,
-                    videoWidth: obj.width,
-                    videoHeight: obj.height,
-                    videoFrameRate: obj.frameRate,
+                    canvasWidth: window.innerWidth,
+                    canvasHeight: window.innerWidth * obj.height / obj.width,
+                    aspectRatio: obj.height / obj.width,
+                    videoFrameRate: obj.frameRate
                 })
             });
-        }
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.updateWindowDimensions);
+    }
 
     looper () {
         const video = this.player
@@ -46,7 +58,7 @@ class VideoCanvas extends Component {
             video.play()
         }
         if (video.currentTime < this.state.endTime) {
-            ctx.drawImage(video, 0, 0, this.state.videoWidth, this.state.videoHeight)
+            ctx.drawImage(video, 0, 0, this.state.canvasWidth, this.state.canvasHeight)
             setTimeout(this.looper, 1000 / this.state.videoFrameRate)
         } else {
             video.currentTime = this.state.startTime
@@ -113,13 +125,20 @@ class VideoCanvas extends Component {
         this.player.play()
     }
 
+    updateWindowDimensions() {
+        this.setState({
+            canvasWidth: window.innerWidth,
+            canvasHeight: window.innerWidth * this.state.aspectRatio
+        });
+    }
+
     render() {
         return (
             <div>
                 <video onPlay={this.looper} onLoadedMetadata={this.loadedMetaDataHandler} src={this.state.videoUrl}
                     controls="false" style={{display:'none'}} ref={(player) => {this.player = player}} autoPlay loop />
 
-                <canvas width={this.state.videoWidth} height={this.state.videoHeight} ref={(canvas) => {this.canvas = canvas}} />
+                <canvas width={this.state.canvasWidth} height={this.state.canvasHeight} ref={(canvas) => {this.canvas = canvas}} />
                 <div>
                     <label>
                         Start time:
