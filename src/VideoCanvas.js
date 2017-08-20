@@ -151,7 +151,7 @@ class VideoCanvas extends Component {
              return (
                 <div>
                     <video onPlay={this.looper} onLoadedMetadata={this.loadedMetaDataHandler} src={this.state.videoUrl}
-                        controls="false" style={{display:'none'}} ref={(player) => {this.player = player}} autoPlay loop />
+                        controls="false" style={{display:'none'}} ref={(player) => {this.player = player}} autoPlay loop  webkit-playsinline/>
 
                     <canvas width={this.state.canvasWidth} height={this.state.canvasHeight} ref={(canvas) => {this.canvas = canvas}} />
                     <div className="Center">
